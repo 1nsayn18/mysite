@@ -1,14 +1,17 @@
+from django.db import models
 from food.forms import ItemForm
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
-
 from food.models import Item
-
 from django.template import loader
+from django.views.generic.list import ListView
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import CreateView
 
 
 # Create your views here.
 
+#Function Based View
 def index(request):
     item_list = Item.objects.all()
     context = {
@@ -16,6 +19,13 @@ def index(request):
     }
     return render(request, 'food/index.html', context) 
 
+#Class Based View
+class IndexClassView(ListView):
+    model = Item;
+    template_name = 'food/index.html'
+    context_object_name = 'item_list' 
+
+#Function Based View
 def detail(request, item_id):
     item = Item.objects.get(pk=item_id)
     context = {
@@ -23,6 +33,12 @@ def detail(request, item_id):
     }
     return render(request, 'food/detail.html', context)  
 
+#Class Based View
+class DetailClassView(DetailView):
+    model = Item;
+    template_name = 'food/detail.html'
+    
+#Function Based View
 def create_item(request):
     form = ItemForm(request.POST or None) 
 
@@ -31,6 +47,18 @@ def create_item(request):
         return redirect('food:index')
 
     return render(request, 'food/item-form.html', {'form':form}) 
+
+#Class Based View
+class CreateItemClassView(CreateView):
+    model = Item;
+    fields = ['item_name', 'item_desc', 'item_price', 'item_image']
+    template_name = 'food/item-form.html'
+
+    def form_valid(self, form):
+        form.instance.user_name = self.request.user
+
+        return super().form_valid(form)
+
 
 def update_item(request, id):
     item = Item.objects.get(id=id) 
